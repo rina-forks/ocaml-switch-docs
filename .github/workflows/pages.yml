@@ -69,6 +69,11 @@ jobs:
           opam pin add .
           opam exec -- odoc_driver
 
+      - run: |
+          cd _html
+          echo ${{ secrets.SECRET_KEY }} > ${{ secrets.SECRET_KEY }}.txt
+          find . -name '*.html' > sitemap.txt
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
