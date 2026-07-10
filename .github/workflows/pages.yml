@@ -27,12 +27,40 @@ jobs:
         with:
           ocaml-compiler: 5
 
+      - id: month
+        run: python3 -c 'from datetime import *; print(datetime.now().strftime("month=%m"))' >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - id: cache
+        uses: actions/cache/restore@v5
+        with:
+          key: bincaml-opam-${{ runner.os }}-${{ hashFiles('**/*.opam') }}-${{ steps.month.outputs.month }}
+          restore-keys: |
+            bincaml-opam-${{ runner.os }}-${{ hashFiles('**/*.opam') }}-
+            bincaml-opam-${{ runner.os }}-
+          # exclude opam compiler paths which are cached by setup-ocaml
+          path: |
+            _opam
+            !_opam/bin/ocaml*
+            !_opam/lib/ocaml
+            _opam/lib/ocamlformat*
+
       - name: Install dependencies
         run: |
           opam option --global 'archive-mirrors+="https://opam.ocaml.org/cache"'
           opam repository add pac https://github.com/uq-pac/opam-repository.git
           opam install . --deps-only --with-doc
           opam install odoc-driver
+
+      - if: always() && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          key: bincaml-opam-${{ runner.os }}-${{ hashFiles('**/*.opam') }}-${{ steps.month.outputs.month }}
+          path: |
+            _opam
+            !_opam/bin/ocaml*
+            !_opam/lib/ocaml
+            _opam/lib/ocamlformat*
 
       - name: Build documentation
         run: |
