@@ -72,7 +72,8 @@ jobs:
       - run: |
           cd _html
           echo ${{ secrets.SECRET_KEY }} > ${{ secrets.SECRET_KEY }}.txt
-          find . -name '*.html' > sitemap.txt
+          printf 'google-site-verification: %s' "${{ secrets.SECRET_KEY2 }}" > "${{ secrets.SECRET_KEY2 }}"
+          find . -name '*.html' | sed 's ^\. https://rina-forks.github.io/ocaml-switch-docs ' > sitemap.txt
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
