@@ -28,16 +28,18 @@ jobs:
           ocaml-compiler: "5.4"
 
       - id: month
-        run: python3 -c 'from datetime import *; print(datetime.now().strftime("month=%m"))' >> "$GITHUB_OUTPUT"
+        run: |
+          python3 -c 'from datetime import *; print(datetime.now().strftime("month=%m"))' >> "$GITHUB_OUTPUT"
+          printf 'ocaml=%s\n' "$(ocaml --version | tr -d '[:space:][a-zA-Z],')" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - id: cache
         uses: actions/cache/restore@v5
         with:
-          key: bincaml-opam-${{ runner.os }}-${{ hashFiles('**/*.opam') }}-${{ steps.month.outputs.month }}
+          key: bincaml-opam-${{ runner.os }}-${{ steps.month.outputs.ocaml }}-${{ hashFiles('**/*.opam') }}-${{ steps.month.outputs.month }}
           restore-keys: |
-            bincaml-opam-${{ runner.os }}-${{ hashFiles('**/*.opam') }}-
-            bincaml-opam-${{ runner.os }}-
+            bincaml-opam-${{ runner.os }}-${{ steps.month.outputs.ocaml }}-${{ hashFiles('**/*.opam') }}-
+            bincaml-opam-${{ runner.os }}-${{ steps.month.outputs.ocaml }}
           # exclude opam compiler paths which are cached by setup-ocaml
           path: |
             _opam
@@ -55,7 +57,7 @@ jobs:
       - if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
-          key: bincaml-opam-${{ runner.os }}-${{ hashFiles('**/*.opam') }}-${{ steps.month.outputs.month }}
+          key: bincaml-opam-${{ runner.os }}-${{ steps.month.outputs.ocaml }}-${{ hashFiles('**/*.opam') }}-${{ steps.month.outputs.month }}
           path: |
             _opam
             !_opam/bin/ocaml*
